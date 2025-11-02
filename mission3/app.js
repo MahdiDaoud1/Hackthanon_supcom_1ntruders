@@ -3,7 +3,7 @@
 // ==========================================================
 // ⬇️ *** PASTE YOUR NEW URL FROM THE TERMINAL HERE *** ⬇️
 const VERCEL_BASE_URL =
-  "https://hackthanonsupcom1ntruders-mmwp902aq-mahdidaoud1s-projects.vercel.app";
+  "https://hackthanonsupcom1ntruders-lv30m26gl-mahdidaoud1s-projects.vercel.app";
 const REFRESH_INTERVAL = 5000; // 5 seconds
 // ==========================================================
 
