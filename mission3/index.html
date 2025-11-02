@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Farm Control Board</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Smart Farm Control Board</h1>
+      <div class="pump-card">
+        <h2>Pump Status</h2>
+        <div id="pump-status" class="status-box pump-idle">IDLE</div>
+      </div>
+      <div class="card-grid">
+        <div class="card">
+          <h2>Tomato 🍅</h2>
+          <div id="tomato-status" class="status-box">Connecting...</div>
+          <button id="tomato-button" class="btn">Force Water</button>
+        </div>
+        <div class="card">
+          <h2>Onion 🧅</h2>
+          <div id="onion-status" class="status-box">Connecting...</div>
+          <button id="onion-button" class="btn">Force Water</button>
+        </div>
+        <div class="card">
+          <h2>Mint 🌿</h2>
+          <div id="mint-status" class="status-box">Connecting...</div>
+          <button id="mint-button" class="btn">Force Water</button>
+        </div>
+      </div>
+      <div class="card-grid">
+        <div class="card-full">
+          <button id="all-off-button" class="btn btn-off">
+            Turn All Valves & Pump OFF
+          </button>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
