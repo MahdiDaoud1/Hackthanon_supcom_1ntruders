@@ -1,106 +1,152 @@
 # ===================================================================
-# Project:   Smart Farm - Flask Server (v2 - with Warning State)
+# Project:   Smart Farm - Flask Server (v5 - Manual Control)
 #
-# Role:      Receives raw data, applies 3-state logic, and serves
-#            the processed status (0=OK, 1=DRY, 2=WARN).
+# Role:      - Gets sensor data from Field
+#            - Serves status to Receivers
+#            - Tracks valve status & accepts manual commands
 # ===================================================================
 
-from flask import Flask, request, jsonify
+from flask import Flask, request
+import redis
+import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app) # Initialize CORS for the whole app
 
-# === Logic and Storage ===
-# We now have TWO thresholds per plant
+# === Logic ===
 TOMATO_THRESHOLD_DRY = 3000
-TOMATO_THRESHOLD_WARN = 2700  # Warning level (must be < DRY)
-
+TOMATO_THRESHOLD_WARN = 2700
 ONION_THRESHOLD_DRY = 2500
 ONION_THRESHOLD_WARN = 2200
-
 MINT_THRESHOLD_DRY = 2000
 MINT_THRESHOLD_WARN = 1800
 
-# This file will store the final status (e.g., "1,0,2")
-STATUS_FILE = "plant_status.txt"
+# === Database Connection ===
+# Gets the 'REDIS_URL' from Vercel's environment variables
+redis_url = "redis://default:LDzxLEPdkxQKlu30JlAUD7ELj9n7djbH@redis-13633.crce202.eu-west-3-1.ec2.redns.redis-cloud.com:13633"
+
+try:
+    # Connect to the Redis database
+    r = redis.from_url(redis_url)
+    r.ping() # Test the connection
+    print(f"Connected to Redis at {redis_url}")
+except Exception as e:
+    # If REDIS_URL is not set, this will fail
+    print(f"CRITICAL: Could not connect to Redis. {e}")
+    r = None # Set to None so app can at least run
+
+# === REDIS KEYS ===
+PLANT_STATUS_KEY = "plant_status"
+VALVE_STATUS_KEY = "valve_status"
+MANUAL_COMMAND_KEY = "manual_command"
+
 
 @app.route('/')
 def home():
-    return "Smart Farm Server is Running (v2)"
+    return "Smart Farm Server is Running (v5 - Manual Control)"
 
-#
-# ENDPOINT 1: For the Field Node to POST raw data
-#
+# --- Endpoint for Field Emitter ---
 @app.route('/update_raw', methods=['POST'])
 def update_raw_data():
+    if not r: return "Server Error: DB not connected", 500
     try:
         rawData = request.data.decode('utf-8')
-        print(f"[LOG] Received raw data: {rawData}")
-
+        print(f"[LOG] Received raw sensor data: {rawData}")
         parts = rawData.split(',')
-        if len(parts) != 3:
-            return "Bad data format", 400
+        if len(parts) != 3: return "Bad data format", 400
 
-        tomatoVal = int(parts[0])
-        onionVal = int(parts[1])
-        mintVal = int(parts[2])
+        tomatoVal, onionVal, mintVal = int(parts[0]), int(parts[1]), int(parts[2])
 
-        # --- New 3-State Server-Side Logic ---
+        if tomatoVal > TOMATO_THRESHOLD_DRY: tomatoStatus = 1
+        elif tomatoVal > TOMATO_THRESHOLD_WARN: tomatoStatus = 2
+        else: tomatoStatus = 0
         
-        # Tomato
-        if tomatoVal > TOMATO_THRESHOLD_DRY:
-            tomatoStatus = 1  # Dry
-        elif tomatoVal > TOMATO_THRESHOLD_WARN:
-            tomatoStatus = 2  # Warning
-        else:
-            tomatoStatus = 0  # OK
+        if onionVal > ONION_THRESHOLD_DRY: onionStatus = 1
+        elif onionVal > ONION_THRESHOLD_WARN: onionStatus = 2
+        else: onionStatus = 0
 
-        # Onion
-        if onionVal > ONION_THRESHOLD_DRY:
-            onionStatus = 1
-        elif onionVal > ONION_THRESHOLD_WARN:
-            onionStatus = 2
-        else:
-            onionStatus = 0
+        if mintVal > MINT_THRESHOLD_DRY: mintStatus = 1
+        elif mintVal > MINT_THRESHOLD_WARN: mintStatus = 2
+        else: mintStatus = 0
 
-        # Mint
-        if mintVal > MINT_THRESHOLD_DRY:
-            mintStatus = 1
-        elif mintVal > MINT_THRESHOLD_WARN:
-            mintStatus = 2
-        else:
-            mintStatus = 0
-
-        # Create the final, processed status string
         finalStatus = f"{tomatoStatus},{onionStatus},{mintStatus}"
-        print(f"[LOG] Processed status: {finalStatus}")
-
-        # Save the final status to the file
-        with open(STATUS_FILE, 'w') as f:
-            f.write(finalStatus)
-
+        print(f"[LOG] Processed plant status: {finalStatus}")
+        r.set(PLANT_STATUS_KEY, finalStatus)
         return "Data received and processed", 200
-
     except Exception as e:
-        print(f"[ERROR] {e}")
+        print(f"[ERROR] update_raw: {e}")
         return "Internal server error", 500
 
-#
-# ENDPOINT 2: For the Home Node to GET the processed status
-#
+# --- Endpoint for LED Display + Pump Receiver (Auto-Logic) ---
 @app.route('/get_status', methods=['GET'])
 def get_status():
+    if not r: return "Server Error: DB not connected", 500
     try:
-        with open(STATUS_FILE, 'r') as f:
-            status = f.read().strip()
-        return status, 200, {'Content-Type': 'text/plain'}
-    except FileNotFoundError:
-        return "0,0,0", 200, {'Content-Type': 'text/plain'}
+        status_bytes = r.get(PLANT_STATUS_KEY)
+        if status_bytes is None: return "0,0,0", 200
+        return status_bytes.decode('utf-8'), 200
     except Exception as e:
-        print(f"[ERROR] {e}")
-        return "Internal server error", 500
+        print(f"[ERROR] get_status: {e}")
+        return "0,0,0", 500
+
+# --- Endpoint for Pump Receiver to REPORT its status ---
+# --- Endpoint for User to TRACK valve status ---
+@app.route('/valve_status', methods=['GET', 'POST'])
+def valve_status():
+    if not r: return "Server Error: DB not connected", 500
+    
+    if request.method == 'POST':
+        try:
+            status = request.data.decode('utf-8')
+            r.set(VALVE_STATUS_KEY, status)
+            print(f"[LOG] Valve status updated to: {status}")
+            return "Status received", 200
+        except Exception as e:
+            print(f"[ERROR] valve_status POST: {e}")
+            return "Internal server error", 500
+            
+    elif request.method == 'GET':
+        try:
+            status_bytes = r.get(VALVE_STATUS_KEY)
+            if status_bytes is None: return "UNKNOWN", 200
+            return status_bytes.decode('utf-8'), 200
+        except Exception as e:
+            print(f"[ERROR] valve_status GET: {e}")
+            return "UNKNOWN", 500
+
+# --- Endpoint for User to FORCE a valve open ---
+# --- Endpoint for Pump Receiver to CHECK for commands ---
+@app.route('/manual_command', methods=['GET', 'POST'])
+def manual_command():
+    if not r: return "Server Error: DB not connected", 500
+    
+    if request.method == 'POST':
+        try:
+            command = request.data.decode('utf-8')
+            r.set(MANUAL_COMMAND_KEY, command, ex=30) 
+            print(f"[LOG] Manual command received: {command}")
+            return "Command received", 200
+        except Exception as e:
+            print(f"[ERROR] manual_command POST: {e}")
+            return "Internal server error", 500
+            
+    elif request.method == 'GET':
+        try:
+            command_bytes = r.get(MANUAL_COMMAND_KEY)
+            if command_bytes is None: return "NONE", 200
+            
+            r.delete(MANUAL_COMMAND_KEY)
+            command = command_bytes.decode('utf-8')
+            print(f"[LOG] Sending command to receiver: {command}")
+            return command, 200
+        except Exception as e:
+            print(f"[ERROR] manual_command GET: {e}")
+            return "NONE", 500
 
 #
-# Run the server
+# Run the server (for local testing ONLY)
 #
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Vercel will ignore this and run the app safely
+    app.run(host='0.0.0.0', port=5000, debug=False)

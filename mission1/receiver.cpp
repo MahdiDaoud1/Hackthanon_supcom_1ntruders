@@ -3,7 +3,7 @@
  * Project:   Smart Farm - Home Display Node (v2 - Blinking LEDs)
  *
  * Role:      Fetches 3-state status (0=OK, 1=DRY, 2=WARN)
- * and controls LEDs (OFF, ON, Blinking).
+ * and controls local LEDs (OFF, ON, Blinking).
  * ===================================================================
  */
 
@@ -13,7 +13,8 @@
 // === Wi-Fi & Server Config ===
 const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
-const char* serverUrl = "http://YOUR_SERVER_IP_OR_DOMAIN:5000/get_status";
+// Use your deployed Vercel URL
+const char* serverUrl = "https://hackthanonsupcom1ntruders.vercel.app/get_status";
 
 // === Pin Definitions ===
 const int TOMATO_LED_PIN = 25;
@@ -30,7 +31,6 @@ unsigned long previousBlinkMillis = 0;
 bool ledBlinkState = false; // Tracks the blinker (ON/OFF)
 
 // === Global State Variables ===
-// These store the *desired* state (0=OFF, 1=ON, 2=BLINK)
 int tomatoLedState = 0;
 int onionLedState = 0;
 int mintLedState = 0;
@@ -87,15 +87,12 @@ void loop() {
   }
 
   // --- Task 3: Update LEDs (runs *every* loop) ---
-  // This function applies the stored states (0, 1, or 2)
   updateLedDisplay();
 }
 
 /*
  * ===================================================================
  * updateLedDisplay()
- * This function runs continuously in the loop to set the
- * physical LED pins based on the global state variables.
  * ===================================================================
  */
 void updateLedDisplay() {
@@ -152,8 +149,6 @@ void connectToWiFi() {
 /*
  * ===================================================================
  * getIrrigationStatus()
- * This function just fetches the string from the server and
- * updates the global state variables. It does NOT control LEDs.
  * ===================================================================
  */
 void getIrrigationStatus() {
@@ -169,23 +164,14 @@ void getIrrigationStatus() {
     Serial.print(payload);
     Serial.println("'");
 
-    // Parse the string "1,0,2"
     if (payload.length() >= 5 && payload.charAt(1) == ',' && payload.charAt(3) == ',') {
-      
-      // Convert char '0','1','2' to int 0, 1, 2
       tomatoLedState = payload.charAt(0) - '0';
       onionLedState = payload.charAt(2) - '0';
       mintLedState = payload.charAt(4) - '0';
-      
       Serial.println("LED states updated.");
-      
     } else {
       Serial.print("Error: Received unexpected data format: ");
       Serial.println(payload);
-      // Set to safe state (OFF)
-      tomatoLedState = 0;
-      onionLedState = 0;
-      mintLedState = 0;
     }
     
   } else {
