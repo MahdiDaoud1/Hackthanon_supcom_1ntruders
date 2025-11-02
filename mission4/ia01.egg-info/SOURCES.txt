@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+setup.cfg
+setup.py
+ia01/__init__.py
+ia01/arbre.py
+ia01/evaluation.py
+ia01/kppv.py
+ia01/majoritaire.py
+ia01/metriques.py
+ia01/privacy.py
+ia01/utils.py
+ia01.egg-info/PKG-INFO
+ia01.egg-info/SOURCES.txt
+ia01.egg-info/dependency_links.txt
+ia01.egg-info/top_level.txt

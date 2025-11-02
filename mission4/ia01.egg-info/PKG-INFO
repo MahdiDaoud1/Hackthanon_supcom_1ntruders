@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: ia01
+Version: 1.0
+Summary: TD du cours CSC_3IA01_TA
+Author: <Philippe Xu>
+Author-email: philippe.xu@ensta-paris.fr
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+
+# Travaux dirigés du cours CSC_3IA01_TA 
