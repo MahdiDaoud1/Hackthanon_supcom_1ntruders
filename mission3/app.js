@@ -1,9 +1,9 @@
 // ==========================================================
 // CONFIGURATION
 // ==========================================================
-// ⬇️ *** THIS IS YOUR NEWEST, CORRECT URL FROM THE LATEST SCREENSHOT *** ⬇️
+// ⬇️ *** PASTE YOUR NEW URL FROM THE TERMINAL HERE *** ⬇️
 const VERCEL_BASE_URL =
-  "https://hackthanonsupcom1ntruders-gyo8ooc27-mahdidaouds-projects.vercel.app";
+  "https://hackthanonsupcom1ntruders-mmwp902aq-mahdidaoud1s-projects.vercel.app";
 const REFRESH_INTERVAL = 5000; // 5 seconds
 // ==========================================================
 
@@ -71,7 +71,6 @@ async function sendManualCommand(command) {
     // Immediately fetch the pump status to get the update
     fetchPumpStatus();
   } catch (error) {
-    // <-- THIS IS THE FIX
     console.error("Error sending command:", error);
     alert("Error: Could not send command to server.");
   }
