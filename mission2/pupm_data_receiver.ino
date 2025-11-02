@@ -18,10 +18,10 @@
 // === Wi-Fi & Server Config ===
 const char* ssid = "YOUR_WIFI_SSID";
 const char* password = "YOUR_WIFI_PASSWORD";
-// ⬇️ *** YOU MUST UPDATE THIS WITH YOUR NEWEST VERCEL URL *** ⬇️
-const char* serverUrl_GetStatus = "https://YOUR-APP-NAME.vercel.app/get_status";
-const char* serverUrl_ValveStatus = "https://YOUR-APP-NAME.vercel.app/valve_status";
-const char* serverUrl_ManualCommand = "https://YOUR-APP-NAME.vercel.app/manual_command";
+// ⬇️ *** UPDATE THESE 3 URLS WITH YOUR NEWEST VERCEL URL *** ⬇️
+const char* serverUrl_GetStatus = "https://YOUR-APP-NAME-XXXX.vercel.app/get_status";
+const char* serverUrl_ValveStatus = "https://YOUR-APP-NAME-XXXX.vercel.app/valve_status";
+const char* serverUrl_ManualCommand = "https://YOUR-APP-NAME-XXXX.vercel.app/manual_command";
 
 // === Pin Definitions (Relays) ===
 const int PUMP_PIN = 25;

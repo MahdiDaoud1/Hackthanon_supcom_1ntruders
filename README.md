@@ -25,6 +25,10 @@ The system is split into five main components:
 |
 [Web Dashboard (Mission 3)] <-(GET/POST)--> [Server]
 
+text
+
+---
+
 ## 📁 Project Structure
 
 .
@@ -46,6 +50,10 @@ The system is split into five main components:
 │
 ├── Emetteur.ino # Code for the Field Sensor ESP32
 └── test_client.py # Python script for simulating hardware
+
+text
+
+---
 
 ## ⚙️ Component Details
 
@@ -74,6 +82,7 @@ This is the central "brain" of the operation, built with Python and Flask.
 ### 3. Mission 1: Home LED Display
 
 - **Hardware:** ESP32, 3x LEDs (one for each plant)
+- **Wokwi Simulation:** [https://wokwi.com/projects/446471362041217025](https://wokwi.com/projects/446471362041217025)
 - **Logic:**
   1. Connects to Wi-Fi
   2. In a 10-second loop, GETs status from `/get_status`
@@ -108,6 +117,29 @@ The "smartest" hardware component, responsible for all timers and physical actio
 
 ---
 
+## 🎮 Wokwi Simulation
+
+A working simulation of **Mission 1 (LED Display)** is available on Wokwi:
+
+🔗 **Simulation Link:** [https://wokwi.com/projects/446471362041217025](https://wokwi.com/projects/446471362041217025)
+
+**Simulation Components:**
+
+- ESP32 microcontroller
+- 3x Potentiometers (simulating moisture sensors)
+- 3x LEDs (Red, Green, Blue for Tomato, Onion, Mint)
+- Resistors and wiring
+
+**How it works in simulation:**
+
+- Potentiometers simulate soil moisture readings
+- ESP32 reads potentiometer values and sends them to the server
+- Server processes the data and returns status codes
+- LEDs display the plant status based on server response
+- Provides an oversimplified but functional demonstration of Mission 1
+
+---
+
 ## 🚀 How to Run & Test
 
 ### 1. Deploy the Server
@@ -120,6 +152,7 @@ The "smartest" hardware component, responsible for all timers and physical actio
 
 1. **Web (`app.js`):** Paste the new Vercel URL into the `VERCEL_BASE_URL` variable
 2. **ESP32s:** Paste the new Vercel URL into all three ESP32 `.ino` files and re-upload
+3. **Wokwi Simulation:** Update the server URL in the Wokwi code
 
 ### 3. Run the Website
 
@@ -127,19 +160,26 @@ The "smartest" hardware component, responsible for all timers and physical actio
 2. Run a local server: `python -m http.server 8000`
 3. Open browser to `http://localhost:8000`
 
-### 4. Simulate the Hardware
+### 4. Test with Wokwi Simulation
+
+1. Open the Wokwi simulation: [https://wokwi.com/projects/446471362041217025](https://wokwi.com/projects/446471362041217025)
+2. Adjust potentiometers to simulate different moisture levels
+3. Observe LED behavior changes based on server responses
+4. Watch real-time updates on the web dashboard
+
+### 5. Simulate the Hardware
 
 1. Run `test_client.py` script with the new Vercel URL
 2. Use **Option 1** to send sensor data
 3. Use **Option 7** or **8** to simulate watering cycles
-4. Watch the website update in real-time
+4. Watch both the website and Wokwi simulation update in real-time
 
 ---
 
 ## 🔧 Technical Specifications
 
 - **Microcontroller:** ESP32 (x3)
-- **Sensors:** Capacitive Soil Moisture Sensors (x3)
+- **Sensors:** Capacitive Soil Moisture Sensors (x3) - Simulated with potentiometers in Wokwi
 - **Actuators:** 4-Channel Relay Module, Solenoid Valves (x3), Water Pump
 - **Server:** Flask + Redis on Vercel
 - **Communication:** HTTP REST API
@@ -149,3 +189,4 @@ The "smartest" hardware component, responsible for all timers and physical actio
   - LED Display: 10 seconds
   - Pump Controller: 15 minutes (auto), 5 seconds (manual check)
   - Web Dashboard: 5 seconds
+- **Simulation Platform:** Wokwi for Mission 1 demonstration
