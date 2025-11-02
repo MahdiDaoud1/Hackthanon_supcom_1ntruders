@@ -1,6 +1,6 @@
 # dependecies
 
-- installing flask for python
+- installing flask, reddis for python
 - esp32 arduino based code (c++)
 
 # color coding
